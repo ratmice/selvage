@@ -266,9 +266,6 @@ impl SceneBuilderWhisperer for Selvage {
         _brush_transform: Option<Affine>,
         shape: &impl Shape,
     ) {
-        // FIXME brush_transform
-        // I suppose it needs to be converted into vector_effects with something like
-        // transform.inverse().approx_eq(brush_transform) => vector-effect="non-scaling-stroke"?
         match op {
             ShapeOpRef::Fill { brush, .. } => {
                 //let foo = brush.to_owned();
