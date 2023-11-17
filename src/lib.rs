@@ -1,4 +1,3 @@
-use serde::{Deserialize, Serialize};
 mod whisperer;
 pub use crate::whisperer::{SceneBuilderWhisperer, ShapeOp, ShapeOpRef};
 mod shape;

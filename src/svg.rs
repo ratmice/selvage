@@ -259,9 +259,9 @@ fn add_shape(node: &mut impl Node, shape: impl Shape, attrs: &Attrs) {
 }
 
 impl SceneBuilderWhisperer for Selvage {
-    fn paint_shape_op<'a, 'b>(
+    fn paint_shape_op(
         &mut self,
-        op: ShapeOpRef<'a, 'b>,
+        op: ShapeOpRef<'_, '_>,
         transform: Affine,
         _brush_transform: Option<Affine>,
         shape: &impl Shape,
