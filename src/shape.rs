@@ -1,5 +1,3 @@
-//use schemars::{schema_for, schema_for_value, JsonSchema};
-//use peniko::Fill;
 use kurbo::Rect;
 use kurbo::Shape;
 use serde::Deserialize;
