@@ -1,5 +1,4 @@
-use kurbo::Rect;
-use kurbo::Shape;
+use kurbo::{Affine, Rect, Shape};
 use serde::Deserialize;
 use serde::Serialize;
 
@@ -127,5 +126,25 @@ impl Shape for StaticShape {
             S::Rect(it) => it.bounding_box(),
             S::RoundedRect(it) => it.bounding_box(),
         }
+    }
+}
+
+impl StaticShape {
+    pub fn apply_transform(self, transform: Affine, tolerance: f64) -> Self {
+        use StaticShape as S;
+        let transformed_shape = match self {
+            S::PathSeg(it) => S::PathSeg(transform * it),
+            S::Arc(it) => S::Arc(transform * it),
+            S::BezPath(it) => S::BezPath(transform * it),
+            S::Circle(it) => S::Ellipse(transform * it),
+            S::CircleSegment(it) => S::BezPath(transform * it.to_path(tolerance)),
+            S::CubicBez(it) => S::CubicBez(transform * it),
+            S::Ellipse(it) => S::Ellipse(transform * it),
+            S::Line(it) => S::Line(transform * it),
+            S::QuadBez(it) => S::QuadBez(transform * it),
+            S::Rect(it) => S::BezPath(transform * it.to_path(tolerance)),
+            S::RoundedRect(it) => S::BezPath(transform * it.to_path(tolerance)),
+        };
+        transformed_shape
     }
 }

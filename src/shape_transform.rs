@@ -27,22 +27,12 @@ impl<'w, T: SceneBuilderWhisperer> ShapeTransform<'w, T> {
         brush_transform: Option<Affine>,
         shape: StaticShape,
     ) {
-        use StaticShape as S;
-        let transformed_shape = match shape {
-            S::PathSeg(it) => S::PathSeg(transform * it),
-            S::Arc(it) => S::Arc(transform * it),
-            S::BezPath(it) => S::BezPath(transform * it),
-            S::Circle(it) => S::Ellipse(transform * it),
-            S::CircleSegment(it) => S::BezPath(transform * it.to_path(self.tolerance)),
-            S::CubicBez(it) => S::CubicBez(transform * it),
-            S::Ellipse(it) => S::Ellipse(transform * it),
-            S::Line(it) => S::Line(transform * it),
-            S::QuadBez(it) => S::QuadBez(transform * it),
-            S::Rect(it) => S::BezPath(transform * it.to_path(self.tolerance)),
-            S::RoundedRect(it) => S::BezPath(transform * it.to_path(self.tolerance)),
-        };
-        self.whisperer
-            .paint_shape_op(op, Affine::IDENTITY, brush_transform, &transformed_shape);
+        self.whisperer.paint_shape_op(
+            op,
+            Affine::IDENTITY,
+            brush_transform,
+            &shape.apply_transform(transform, self.tolerance),
+        );
     }
 
     /// Applies the transform to the shape, then paints with Affine::IDENTITY
@@ -51,26 +41,16 @@ impl<'w, T: SceneBuilderWhisperer> ShapeTransform<'w, T> {
         ops: I,
         transform: Affine,
         brush_transform: Option<Affine>,
-        shape: impl Into<StaticShape>,
+        shape: StaticShape,
     ) where
         I: IntoIterator<Item = ShapeOpRef<'a, 'b>>,
     {
-        use StaticShape as S;
-        let transformed_shape = match shape.into() {
-            S::PathSeg(it) => S::PathSeg(transform * it),
-            S::Arc(it) => S::Arc(transform * it),
-            S::BezPath(it) => S::BezPath(transform * it),
-            S::Circle(it) => S::Ellipse(transform * it),
-            S::CircleSegment(it) => S::BezPath(transform * it.to_path(self.tolerance)),
-            S::CubicBez(it) => S::CubicBez(transform * it),
-            S::Ellipse(it) => S::Ellipse(transform * it),
-            S::Line(it) => S::Line(transform * it),
-            S::QuadBez(it) => S::QuadBez(transform * it),
-            S::Rect(it) => S::BezPath(transform * it.to_path(self.tolerance)),
-            S::RoundedRect(it) => S::BezPath(transform * it.to_path(self.tolerance)),
-        };
-        self.whisperer
-            .paint_shape_ops(ops, Affine::IDENTITY, brush_transform, &transformed_shape);
+        self.whisperer.paint_shape_ops(
+            ops,
+            Affine::IDENTITY,
+            brush_transform,
+            &shape.apply_transform(transform, self.tolerance),
+        );
     }
 }
 
