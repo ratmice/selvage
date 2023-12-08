@@ -1,3 +1,4 @@
+#![cfg(feature = "svg")]
 use crate::whisperer::ShapeOpRef;
 use kurbo::{Affine, Shape, Size, Stroke};
 use peniko::BrushRef;

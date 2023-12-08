@@ -4,11 +4,15 @@ version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[features]
+default = []
+vello = ["dep:vello"]
+svg = ["dep:svg"]
 
 [dependencies]
 kurbo = {"path" = "/home/matt/git/kurbo", features = ["serde", "schemars"]}
 peniko = {"path" = "/home/matt/git/peniko", features = ["serde", "schemars"]}
 schemars = "0.8.15"
 serde = {"version" = "1.0.190", features=["derive", "rc"]}
-svg = "0.14.0"
-vello = { path = "/home/matt/git/vello", features = ["serde", "schemars"] }
+svg = {"version" = "0.14.0", optional=true}
+vello = { path = "/home/matt/git/vello", features = ["serde", "schemars"], optional = true }
