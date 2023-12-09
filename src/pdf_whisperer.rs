@@ -27,9 +27,15 @@ impl Pdf {
         pdf.catalog(catalog_id).pages(page_tree_id);
         pdf.pages(page_tree_id).kids([page_id]).count(1);
 
+        let mut content = pdf_writer::Content::new();
+        content.transform(array_magic(
+            (Affine::translate((0.0, size.height)) * Affine::FLIP_Y).as_coeffs(),
+            |x| x as f32,
+        ));
+
         Self {
             pdf,
-            content: pdf_writer::Content::new(),
+            content,
             tolerance,
             size,
         }
@@ -57,15 +63,21 @@ impl Pdf {
     }
 }
 
-fn slice_magic<T, U, const SZ: usize, F: Fn(T) -> U>(src: [T; SZ], f: F) -> [U; SZ]
+fn array_magic<T, U, const SZ: usize, F: Fn(T) -> U>(src: [T; SZ], f: F) -> [U; SZ]
 where
-    U: Default + Copy,
-    T: Copy,
+    T: Copy
 {
-    let mut dest: [U; SZ] = [U::default(); SZ];
-    for (i, x) in src.iter().enumerate() {
-        dest[i] = f(*x)
-    }
+    use std::mem::MaybeUninit;
+
+    let dest: [U; SZ] = unsafe {
+        let mut dest = MaybeUninit::uninit();
+        // safety, for i in 0..SZ dest[i] = f(x) initializing the entire range.
+        for (i, &x) in src.iter().enumerate() {
+            (dest.as_mut_ptr() as *mut U).add(i).write(f(x));
+        }
+        dest.assume_init()
+    };
+
     dest
 }
 
@@ -78,9 +90,8 @@ impl SceneBuilderWhisperer for Pdf {
         shape: &impl Shape,
     ) {
         self.content.save_state();
-        let tfm = Affine::translate((0.0, self.size.height)) * Affine::FLIP_Y * transform;
         self.content
-            .transform(slice_magic(tfm.as_coeffs(), |x| x as f32));
+            .transform(array_magic(transform.as_coeffs(), |x| x as f32));
         if let Some(line) = shape.as_line() {
             self.content.move_to(line.p0.x as f32, line.p0.y as f32);
             self.content.line_to(line.p1.x as f32, line.p1.y as f32);
