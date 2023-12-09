@@ -46,7 +46,7 @@ struct State {
     clip: Option<Id>,
 }
 
-pub struct Selvage {
+pub struct Svg {
     size: Size,
     // I believe these will still be needed when `PushLayer` is implemented, but since I haven't
     // needed it, I haven't implemented it yet.
@@ -76,9 +76,9 @@ struct Attrs<'a> {
     stroke: Option<(Brush, &'a Stroke)>,
 }
 
-impl Selvage {
+impl Svg {
     pub fn new(size: Size) -> Self {
-        Selvage {
+        Svg {
             size,
             doc: svg::Document::new(),
             _next_id: 0,
@@ -259,7 +259,7 @@ fn add_shape(node: &mut impl Node, shape: impl Shape, attrs: &Attrs) {
     }
 }
 
-impl SceneBuilderWhisperer for Selvage {
+impl SceneBuilderWhisperer for Svg {
     fn paint_shape_op(
         &mut self,
         op: ShapeOpRef<'_, '_>,

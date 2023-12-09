@@ -12,7 +12,12 @@ pub use vello_whisperer::*;
 #[cfg(feature = "svg")]
 mod svg;
 #[cfg(feature = "svg")]
-pub use svg::Selvage;
+pub use svg::Svg;
+
+#[cfg(feature = "pdf")]
+mod pdf_whisperer;
+#[cfg(feature = "pdf")]
+pub use pdf_whisperer::*;
 
 #[cfg(test)]
 mod tests {
