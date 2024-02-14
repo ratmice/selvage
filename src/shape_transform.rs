@@ -1,17 +1,17 @@
 use crate::shape::StaticShape;
-use crate::whisperer::ShapeOpRef;
-use crate::SceneBuilderWhisperer;
+use crate::whisperer::PaintOpRef;
+use crate::SceneWhisperer;
 use kurbo::{Affine, Shape};
-pub struct ShapeTransform<'a, T: SceneBuilderWhisperer> {
+pub struct ShapeTransform<'a, T: SceneWhisperer> {
     whisperer: &'a mut T,
     tolerance: f64,
 }
 
 // To avoid applying an affine transform to a `Stroke{width,..}`
 // This applies transforms to the shape first, then gives the renderer an AFFINE::IDENTITY.
-// Unlike `SceneBuilderWhisperer` which takes a &impl Shape, this takes an owned `StaticShape`,
+// Unlike `SceneWhisperer` which takes a &impl Shape, this takes an owned `StaticShape`,
 // It should probably take a `&StaticShape`, however `Mul` isn't implemented for these as references.
-impl<'w, T: SceneBuilderWhisperer> ShapeTransform<'w, T> {
+impl<'w, T: SceneWhisperer> ShapeTransform<'w, T> {
     pub fn new(whisperer: &'w mut T, tolerance: f64) -> Self {
         Self {
             whisperer,
@@ -20,14 +20,14 @@ impl<'w, T: SceneBuilderWhisperer> ShapeTransform<'w, T> {
     }
 
     /// Applies the transform to the shape, then paints with Affine::IDENTITY
-    pub fn transform_paint_shape_op(
+    pub fn transform_paint_op(
         &mut self,
-        op: ShapeOpRef<'_, '_>,
+        op: PaintOpRef<'_, '_>,
         transform: Affine,
         brush_transform: Option<Affine>,
         shape: StaticShape,
     ) {
-        self.whisperer.paint_shape_op(
+        self.whisperer.apply_paint_op(
             op,
             Affine::IDENTITY,
             brush_transform,
@@ -43,9 +43,9 @@ impl<'w, T: SceneBuilderWhisperer> ShapeTransform<'w, T> {
         brush_transform: Option<Affine>,
         shape: StaticShape,
     ) where
-        I: IntoIterator<Item = ShapeOpRef<'a, 'b>>,
+        I: IntoIterator<Item = PaintOpRef<'a, 'b>>,
     {
-        self.whisperer.paint_shape_ops(
+        self.whisperer.apply_paint_ops(
             ops,
             Affine::IDENTITY,
             brush_transform,
@@ -54,32 +54,32 @@ impl<'w, T: SceneBuilderWhisperer> ShapeTransform<'w, T> {
     }
 }
 
-impl<'w, T: SceneBuilderWhisperer> SceneBuilderWhisperer for ShapeTransform<'w, T> {
+impl<'w, T: SceneWhisperer> SceneWhisperer for ShapeTransform<'w, T> {
     /// Calls paint_shape_op on `self.whisperer` directly,
     /// without flattening the transform on shape first.
-    fn paint_shape_op(
+    fn apply_paint_op(
         &mut self,
-        op: ShapeOpRef<'_, '_>,
+        op: PaintOpRef<'_, '_>,
         transform: Affine,
         brush_transform: Option<Affine>,
         shape: &impl Shape,
     ) {
         self.whisperer
-            .paint_shape_op(op, transform, brush_transform, shape);
+            .apply_paint_op(op, transform, brush_transform, shape);
     }
 
     /// Calls `paint_shape_ops` on `self.whisperer` directly,
     /// without flattening the transform on shape first.
-    fn paint_shape_ops<'a, 'b, I>(
+    fn apply_paint_ops<'a, 'b, I>(
         &mut self,
         ops: I,
         transform: Affine,
         brush_transform: Option<Affine>,
         shape: &impl Shape,
     ) where
-        I: IntoIterator<Item = ShapeOpRef<'a, 'b>>,
+        I: IntoIterator<Item = PaintOpRef<'a, 'b>>,
     {
         self.whisperer
-            .paint_shape_ops(ops, transform, brush_transform, shape);
+            .apply_paint_ops(ops, transform, brush_transform, shape);
     }
 }

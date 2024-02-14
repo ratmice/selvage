@@ -65,7 +65,7 @@ impl Pdf {
 
 fn array_magic<T, U, const SZ: usize, F: Fn(T) -> U>(src: [T; SZ], f: F) -> [U; SZ]
 where
-    T: Copy
+    T: Copy,
 {
     use std::mem::MaybeUninit;
 
@@ -81,10 +81,10 @@ where
     dest
 }
 
-impl SceneBuilderWhisperer for Pdf {
-    fn paint_shape_op(
+impl SceneWhisperer for Pdf {
+    fn apply_paint_op(
         &mut self,
-        op: ShapeOpRef<'_, '_>,
+        op: PaintOpRef<'_, '_>,
         transform: Affine,
         brush_transform: Option<Affine>,
         shape: &impl Shape,
@@ -123,7 +123,7 @@ impl SceneBuilderWhisperer for Pdf {
             }
         }
         match op {
-            ShapeOpRef::Fill { style, brush } => {
+            PaintOpRef::Fill { style, brush } => {
                 match brush {
                     peniko::BrushRef::Solid(x) => {
                         self.content
@@ -141,7 +141,7 @@ impl SceneBuilderWhisperer for Pdf {
                     }
                 }
             }
-            ShapeOpRef::Stroke { style, brush } => {
+            PaintOpRef::Stroke { style, brush } => {
                 match brush {
                     peniko::BrushRef::Solid(x) => {
                         self.content
@@ -159,21 +159,21 @@ impl SceneBuilderWhisperer for Pdf {
                 self.content.set_miter_limit(style.miter_limit as f32);
                 self.content.stroke();
             }
-            ShapeOpRef::PushLayer { blend, alpha } => {}
+            PaintOpRef::PushLayer { blend, alpha } => {}
         }
         self.content.restore_state();
     }
-    fn paint_shape_ops<'a, 'b, I>(
+    fn apply_paint_ops<'a, 'b, I>(
         &mut self,
         ops: I,
         transform: Affine,
         brush_transform: Option<Affine>,
         shape: &impl Shape,
     ) where
-        I: IntoIterator<Item = ShapeOpRef<'a, 'b>>,
+        I: IntoIterator<Item = PaintOpRef<'a, 'b>>,
     {
         for op in ops {
-            self.paint_shape_op(op, transform, brush_transform, shape)
+            self.apply_paint_op(op, transform, brush_transform, shape)
         }
     }
 }

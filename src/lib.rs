@@ -1,5 +1,5 @@
 mod whisperer;
-pub use crate::whisperer::{SceneBuilderWhisperer, ShapeOp, ShapeOpRef};
+pub use crate::whisperer::{PaintOp, PaintOpRef, SceneWhisperer};
 mod shape;
 pub use shape::StaticShape;
 mod shape_transform;

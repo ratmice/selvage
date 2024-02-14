@@ -11,10 +11,15 @@ svg = ["dep:svg"]
 pdf = ["dep:pdf-writer"]
 
 [dependencies]
-kurbo = {"path" = "/home/matt/git/kurbo", features = ["serde", "schemars"]}
-peniko = {"path" = "/home/matt/git/peniko", features = ["serde", "schemars"]}
+kurbo = { version = "0.11" , features = ["serde", "schemars"]}
 schemars = "0.8.15"
 serde = {"version" = "1.0.190", features=["derive", "rc"]}
 svg = {"version" = "0.14.0", optional=true}
 pdf-writer = {"version" = "0.9.2", optional=true}
-vello = { path = "/home/matt/git/vello", features = ["serde", "schemars"], optional = true }
+vello = { git = "https://github.com/linebender/vello.git", rev = "b1bd9e3", optional = true}
+# Note these features are added as part of the patch section below.
+peniko = { version = "0.1", features = ["serde", "schemars"] }
+
+[patch.crates-io]
+# PR 16
+peniko = { "git" = "https://github.com/ratmice/peniko.git", rev = "c4a3536" }

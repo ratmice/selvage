@@ -132,7 +132,7 @@ impl Shape for StaticShape {
 impl StaticShape {
     pub fn apply_transform(self, transform: Affine, tolerance: f64) -> Self {
         use StaticShape as S;
-        let transformed_shape = match self {
+        match self {
             S::PathSeg(it) => S::PathSeg(transform * it),
             S::Arc(it) => S::Arc(transform * it),
             S::BezPath(it) => S::BezPath(transform * it),
@@ -144,7 +144,6 @@ impl StaticShape {
             S::QuadBez(it) => S::QuadBez(transform * it),
             S::Rect(it) => S::BezPath(transform * it.to_path(tolerance)),
             S::RoundedRect(it) => S::BezPath(transform * it.to_path(tolerance)),
-        };
-        transformed_shape
+        }
     }
 }

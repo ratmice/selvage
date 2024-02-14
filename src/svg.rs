@@ -1,5 +1,5 @@
 #![cfg(feature = "svg")]
-use crate::whisperer::ShapeOpRef;
+use crate::whisperer::PaintOpRef;
 use kurbo::{Affine, Shape, Size, Stroke};
 use peniko::BrushRef;
 use peniko::Color;
@@ -39,7 +39,7 @@ impl From<Id> for svg::node::Value {
     }
 }
 
-use crate::whisperer::SceneBuilderWhisperer;
+use crate::whisperer::SceneWhisperer;
 
 #[derive(Debug, Clone, Default)]
 struct State {
@@ -259,16 +259,16 @@ fn add_shape(node: &mut impl Node, shape: impl Shape, attrs: &Attrs) {
     }
 }
 
-impl SceneBuilderWhisperer for Svg {
-    fn paint_shape_op(
+impl SceneWhisperer for Svg {
+    fn apply_paint_op(
         &mut self,
-        op: ShapeOpRef<'_, '_>,
+        op: PaintOpRef<'_, '_>,
         transform: Affine,
         _brush_transform: Option<Affine>,
         shape: &impl Shape,
     ) {
         match op {
-            ShapeOpRef::Fill { brush, .. } => {
+            PaintOpRef::Fill { brush, .. } => {
                 //let foo = brush.to_owned();
                 let fill_brush = match brush {
                     BrushRef::Solid(color) => Some((
@@ -293,7 +293,7 @@ impl SceneBuilderWhisperer for Svg {
                 );
             }
 
-            ShapeOpRef::Stroke { style, brush, .. } => {
+            PaintOpRef::Stroke { style, brush, .. } => {
                 let stroke_brush = match brush {
                     BrushRef::Solid(color) => Some((
                         Brush {
@@ -316,23 +316,23 @@ impl SceneBuilderWhisperer for Svg {
                     },
                 );
             }
-            ShapeOpRef::PushLayer { .. } => {}
+            PaintOpRef::PushLayer { .. } => {}
         }
     }
 
-    fn paint_shape_ops<'a, 'b, I>(
+    fn apply_paint_ops<'a, 'b, I>(
         &mut self,
         ops: I,
         transform: Affine,
         brush_transform: Option<Affine>,
         shape: &impl Shape,
     ) where
-        I: IntoIterator<Item = ShapeOpRef<'a, 'b>>,
+        I: IntoIterator<Item = PaintOpRef<'a, 'b>>,
     {
         // FIXME this should be able to produce nicer output than just producing an element for
         // each shape_op.
         for op in ops {
-            self.paint_shape_op(op, transform, brush_transform, shape)
+            self.apply_paint_op(op, transform, brush_transform, shape)
         }
     }
 }
