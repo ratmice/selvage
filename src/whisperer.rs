@@ -5,7 +5,6 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::borrow::Borrow;
 
-#[derive(Clone, Debug, Serialize)]
 pub enum PaintOpRef<'a, 'b> {
     Fill {
         style: Fill,
