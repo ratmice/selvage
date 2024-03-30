@@ -86,7 +86,7 @@ impl SceneWhisperer for Pdf {
         &mut self,
         op: PaintOpRef<'_, '_>,
         transform: Affine,
-        brush_transform: Option<Affine>,
+        _brush_transform: Option<Affine>,
         shape: &impl Shape,
     ) {
         self.content.save_state();
@@ -116,7 +116,7 @@ impl SceneWhisperer for Pdf {
                     kurbo::PathEl::ClosePath => {
                         self.content.close_path();
                     }
-                    kurbo::PathEl::QuadTo(a, b) => {
+                    kurbo::PathEl::QuadTo(_a, _b) => {
                         unimplemented!()
                     }
                 }
@@ -129,8 +129,8 @@ impl SceneWhisperer for Pdf {
                         self.content
                             .set_fill_rgb(x.r as f32, x.g as f32, x.b as f32);
                     }
-                    peniko::BrushRef::Gradient(x) => {}
-                    peniko::BrushRef::Image(x) => {}
+                    peniko::BrushRef::Gradient(_x) => {}
+                    peniko::BrushRef::Image(_x) => {}
                 }
                 match style {
                     peniko::Fill::EvenOdd => {
@@ -147,8 +147,8 @@ impl SceneWhisperer for Pdf {
                         self.content
                             .set_fill_rgb(x.r as f32, x.g as f32, x.b as f32);
                     }
-                    peniko::BrushRef::Gradient(x) => {}
-                    peniko::BrushRef::Image(x) => {}
+                    peniko::BrushRef::Gradient(_x) => {}
+                    peniko::BrushRef::Image(_x) => {}
                 }
                 self.content.set_line_join(match style.join {
                     kurbo::Join::Bevel => pdf_writer::types::LineJoinStyle::BevelJoin,
@@ -159,7 +159,7 @@ impl SceneWhisperer for Pdf {
                 self.content.set_miter_limit(style.miter_limit as f32);
                 self.content.stroke();
             }
-            PaintOpRef::PushLayer { blend, alpha } => {}
+            PaintOpRef::PushLayer { blend: _, alpha: _ } => {}
         }
         self.content.restore_state();
     }
