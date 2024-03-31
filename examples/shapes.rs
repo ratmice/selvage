@@ -1,6 +1,5 @@
 use anyhow::{anyhow, bail, Result};
-use kurbo::BezPath;
-use kurbo::{Affine, Size};
+use kurbo::{Affine, BezPath, Ellipse, Size};
 use peniko::Color;
 #[cfg(feature = "pdf")]
 use selvage::Pdf;
@@ -36,6 +35,8 @@ pub struct Symbol {
 }
 
 fn serialized_shape() -> anyhow::Result<String> {
+    let mut shapes = Vec::new();
+
     let mut tri = BezPath::new();
     tri.move_to((10., 10.));
     tri.line_to((15., 15.));
@@ -47,69 +48,87 @@ fn serialized_shape() -> anyhow::Result<String> {
         brush: peniko::Brush::Solid(PEN_COLOR),
     };
     let sym = Symbol {
-        // Static shape isn't really utilized here,
-        // see the *shapes.rs* example, for an example
-        // where it is necessary
         shape: StaticShape::BezPath(tri),
-        paint_ops: vec![stroke],
+        paint_ops: vec![stroke.clone()],
         transform: Affine::IDENTITY,
         brush_transform: None,
     };
-    Ok(serde_json::to_string(&sym)?)
+    shapes.push(sym);
+    shapes.push(Symbol {
+        shape: StaticShape::Ellipse(Ellipse::new((32.0, 32.0), (16.0, 8.0), 0.0)),
+        paint_ops: vec![stroke],
+        transform: Affine::IDENTITY,
+        brush_transform: None,
+    });
+    Ok(serde_json::to_string(&shapes)?)
 }
 
 fn main() -> anyhow::Result<()> {
     let s = serialized_shape()?;
-    let sym: Symbol = serde_json::from_str(&s)?;
+    let shapes: Vec<Symbol> = serde_json::from_str(&s)?;
 
     #[cfg(not(any(feature = "svg", feature = "vello", feature = "pdf")))]
     eprintln!("Must enable feature vello, svg, or pdf to do anything");
 
-    {
+    #[cfg(feature = "vello")]
+    let mut scene = Scene::new();
+    #[cfg(feature = "vello")]
+    let mut r = pollster::block_on(Renderer::new(RENDER_SIZE))?;
+    #[cfg(feature = "vello")]
+    let mut target = r.texture("foo");
+    #[cfg(feature = "svg")]
+    let mut svg = Svg::new(RENDER_SIZE);
+    #[cfg(feature = "pdf")]
+    let mut pdf = Pdf::new(RENDER_SIZE, 0.1);
+
+    for shape in shapes {
         #[cfg(feature = "vello")]
         {
-            let mut renderer = pollster::block_on(Renderer::new(RENDER_SIZE))?;
-            let mut target = renderer.texture("foo");
-            let mut scene = Scene::new();
             scene.apply_paint_ops(
-                sym.paint_ops.iter().map(|x| x.into()),
-                sym.transform,
-                sym.brush_transform,
-                &sym.shape,
+                shape.paint_ops.iter().map(|x| x.into()),
+                shape.transform,
+                shape.brush_transform,
+                &shape.shape,
             );
-            let mut path_buf = std::path::PathBuf::from(OUTPUT_NAME);
-            path_buf.set_extension("png");
-            pollster::block_on(renderer.render(scene, path_buf, &mut target))?;
         }
         #[cfg(feature = "svg")]
         {
-            let mut svg = Svg::new(RENDER_SIZE);
-            let mut path_buf = std::path::PathBuf::from(OUTPUT_NAME);
-            path_buf.set_extension("svg");
             svg.apply_paint_ops(
-                sym.paint_ops.iter().map(|x| x.into()),
-                sym.transform,
-                sym.brush_transform,
-                &sym.shape,
+                shape.paint_ops.iter().map(|x| x.into()),
+                shape.transform,
+                shape.brush_transform,
+                &shape.shape,
             );
-
-            let svg_out = std::fs::File::create(path_buf)?;
-            svg.write(svg_out)?;
         }
         #[cfg(feature = "pdf")]
         {
-            let mut pdf = Pdf::new(RENDER_SIZE, 0.1);
-            let mut path_buf = std::path::PathBuf::from(OUTPUT_NAME);
             pdf.apply_paint_ops(
-                sym.paint_ops.iter().map(|x| x.into()),
-                sym.transform,
-                sym.brush_transform,
-                &sym.shape,
+                shape.paint_ops.iter().map(|x| x.into()),
+                shape.transform,
+                shape.brush_transform,
+                &shape.shape,
             );
-            path_buf.set_extension("pdf");
-            let out = std::fs::File::create(path_buf)?;
-            pdf.write(out)?;
         }
+    }
+    #[cfg(feature = "pdf")]
+    {
+        let mut path_buf = std::path::PathBuf::from(OUTPUT_NAME);
+        path_buf.set_extension("pdf");
+        let out = std::fs::File::create(path_buf)?;
+        pdf.write(out)?;
+    }
+    #[cfg(feature = "svg")]
+    {
+        let mut path_buf = std::path::PathBuf::from(OUTPUT_NAME);
+        path_buf.set_extension("svg");
+        let svg_out = std::fs::File::create(path_buf)?;
+        svg.write(svg_out)?;
+    }
+    #[cfg(feature = "vello")]
+    {
+        let mut path_buf = std::path::PathBuf::from(OUTPUT_NAME);
+        path_buf.set_extension("png");
+        pollster::block_on(r.render(scene, path_buf, &mut target))?;
     }
     Ok(())
 }
