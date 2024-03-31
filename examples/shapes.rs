@@ -72,10 +72,6 @@ fn main() -> anyhow::Result<()> {
 
     #[cfg(feature = "vello")]
     let mut scene = Scene::new();
-    #[cfg(feature = "vello")]
-    let mut r = pollster::block_on(Renderer::new(RENDER_SIZE))?;
-    #[cfg(feature = "vello")]
-    let mut target = r.texture("foo");
     #[cfg(feature = "svg")]
     let mut svg = Svg::new(RENDER_SIZE);
     #[cfg(feature = "pdf")]
@@ -126,6 +122,8 @@ fn main() -> anyhow::Result<()> {
     }
     #[cfg(feature = "vello")]
     {
+        let mut r = pollster::block_on(Renderer::new(RENDER_SIZE))?;
+        let mut target = r.texture("foo");
         let mut path_buf = std::path::PathBuf::from(OUTPUT_NAME);
         path_buf.set_extension("png");
         pollster::block_on(r.render(scene, path_buf, &mut target))?;
