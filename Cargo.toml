@@ -13,6 +13,9 @@ pdf = ["dep:pdf-writer"]
 [[example]]
 name = "triangle"
 
+[[example]]
+name = "shapes"
+
 [dependencies]
 kurbo = { version = "0.11" , features = ["serde", "schemars"]}
 schemars = "0.8.15"
