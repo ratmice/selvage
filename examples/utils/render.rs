@@ -3,7 +3,7 @@ use kurbo::Size;
 use peniko::Color;
 #[cfg(feature = "vello")]
 use vello::{
-    block_on_wgpu, peniko, util::RenderContext, AaConfig, AaSupport, RendererOptions, Scene,
+    util::block_on_wgpu, peniko, util::RenderContext, AaConfig, AaSupport, RendererOptions, Scene,
 };
 use wgpu::BufferUsages;
 use wgpu::ImageCopyBuffer;
@@ -29,8 +29,7 @@ impl Renderer {
             height,
             depth_or_array_layers: 1,
         };
-        let mut ctxt = RenderContext::new()
-            .or_else(|_| bail!("got non-Send/Sync error from creating render context"))?;
+        let mut ctxt = RenderContext::new();
 
         let device_id = ctxt
             .device(None)

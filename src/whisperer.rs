@@ -1,7 +1,6 @@
 #![allow(unused)]
 use kurbo::{Affine, Point, Rect, Shape, Stroke};
 use peniko::{BlendMode, Brush, BrushRef, Fill};
-use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::borrow::Borrow;
 
